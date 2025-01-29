@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Finance Tracker</title>
+</head>
+<body>
+    <h1>Finance Records</h1>
+    <a href="/add">Add New Record</a>
+    <table>
+        <tr>
+            <th>Description</th>
+            <th>Amount</th>
+            <th>Actions</th>
+        </tr>
+        <tr th:each="record : ${records}">
+            <td th:text="${record.description}"></td>
+            <td th:text="${record.amount}"></td>
+            <td>
+                <a th:href="@{/edit/{id}(id=${record.id})}">Edit</a> |
+                <a th:href="@{/delete/{id}(id=${record.id})}">Delete</a>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>
