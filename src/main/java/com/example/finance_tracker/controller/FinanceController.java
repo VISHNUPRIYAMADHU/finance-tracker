@@ -1,64 +1,51 @@
+
 package com.example.finance_tracker.controller;
 
-import com.example.finance_tracker.model.FinanceRecord;
-import com.example.finance_tracker.repository.FinanceRecordRepository;
+import com.example.finance_tracker.model.Finance;
+import com.example.finance_tracker.service.FinanceService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Optional;
 
-@Controller
-@RequestMapping("/")
+@CrossOrigin(origins = "http://localhost:3000")
+@RestController
+@RequestMapping("/api/finances")
 public class FinanceController {
 
     @Autowired
-    private FinanceRecordRepository repository;
+    private FinanceService financeService;
 
-    // View the finance records
     @GetMapping
-    public String viewFinance(Model model) {
-        List<FinanceRecord> records = repository.findAll();
-        model.addAttribute("records", records);
-        return "index";
+    public List<Finance> getAllFinances() {
+        return financeService.getAllFinances();
     }
 
-    // Show form to add new record
-    @GetMapping("/add")
-    public String addFinanceForm(Model model) {
-        model.addAttribute("financeRecord", new FinanceRecord());
-        return "add";
+    @GetMapping("/{id}")
+    public Optional<Finance> getFinanceById(@PathVariable Long id) {
+        return financeService.getFinanceById(id);
     }
 
-    // Add new record
-    @PostMapping("/add")
-    public String saveFinance(@ModelAttribute FinanceRecord financeRecord) {
-        repository.save(financeRecord);
-        return "redirect:/";
+    @PostMapping
+    public Finance addFinance(@RequestBody Finance finance) {
+        return financeService.saveFinance(finance);
     }
 
-    // Show form to edit a record
-    @GetMapping("/edit/{id}")
-    public String editFinanceForm(@PathVariable("id") Long id, Model model) {
-        FinanceRecord record = repository.findById(id).orElseThrow();
-        model.addAttribute("financeRecord", record);
-        return "edit";
+    @PutMapping("/{id}")
+    public Finance updateFinance(@PathVariable Long id, @RequestBody Finance finance) {
+        Optional<Finance> existingFinance = financeService.getFinanceById(id);
+        if (existingFinance.isPresent()) {
+            Finance financeToUpdate = existingFinance.get();
+            financeToUpdate.setCategory(finance.getCategory());
+            financeToUpdate.setAmount(finance.getAmount());
+            return financeService.saveFinance(financeToUpdate); // Save the updated finance record
+        }
+        return null; // Return null if the record wasn't found
     }
 
-    // Update a record
-    @PostMapping("/edit/{id}")
-    public String updateFinance(@PathVariable("id") Long id, @ModelAttribute FinanceRecord financeRecord) {
-        // Set the id explicitly because it will be updated
-        financeRecord.setId(id);  // Ensures that the correct record is updated
-        repository.save(financeRecord);  // Save the updated record to the database
-        return "redirect:/";
-    }
-
-    // Delete a record
-    @GetMapping("/delete/{id}")
-    public String deleteFinance(@PathVariable("id") Long id) {
-        repository.deleteById(id);  // Delete the record from the database
-        return "redirect:/";
+    @DeleteMapping("/{id}")
+    public void deleteFinance(@PathVariable Long id) {
+        financeService.deleteFinance(id);
     }
 }
